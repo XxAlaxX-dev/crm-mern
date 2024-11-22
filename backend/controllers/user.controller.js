@@ -23,7 +23,7 @@ exports.login = async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
-    const token = jwt.sign({ userId: user._id, role: user.role }, 'secret_key', { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.SECRET_KEY_JWT, { expiresIn: '1h' });
     res.status(200).json({ token });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -39,3 +39,4 @@ exports.getAllUsers = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+//Testing user controller avec Succes
