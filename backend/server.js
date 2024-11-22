@@ -1,6 +1,11 @@
 const express = require("express");
 const dotenv = require("dotenv");
-
+const userRoutes = require("./routes/user.routes");
+const taskRoutes = require('./routes/task.routes');
+const noteRoutes = require('./routes/note.routes');
+const contactRoutes = require('./routes/contact.routes');
+const reunionRoutes = require('./routes/reunion.routes');
+const db=require("./config/db.js");
 // Initialisation
 dotenv.config();
 const app = express();
@@ -14,7 +19,15 @@ app.get("/", (req, res) => {
     res.json("API is running...");
 });
 
+app.use('/api/users', userRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/notes', noteRoutes);
+app.use('/api/contacts', contactRoutes);
+app.use('/api/reunions', reunionRoutes);
+
+
 // Server
-app.listen(PORT, () => {
+app.listen(PORT, async() => {
+    await db();
     console.log(`The server is running on: http://localhost:${PORT} in ${process.env.NODE_ENV} Mode`);
 });
