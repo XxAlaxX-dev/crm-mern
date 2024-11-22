@@ -9,4 +9,4 @@ const db = async () => {
     process.exit(1); // Arrêter le processus en cas d'échec critique
   }
 };
-module.exports = db;
+module.exports = db;//
