@@ -6,19 +6,26 @@ exports.createContact = async (req, res) => {
     const contact = new Contact(req.body);
     await contact.save();
     res.status(201).json({
-      succes:true,
-      msg:"Contact created successfully",
-      contact
+      success: true,
+      msg: "Contact created successfully",
+      contact,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
-// Obtenir tous les contacts
+// Obtenir tous les contacts avec filtrage avancé
 exports.getAllContacts = async (req, res) => {
   try {
-    const contacts = await Contact.find().populate('createdBy', 'name email');
+    const { name, email, createdBy } = req.query;
+    let filter = {};
+
+    if (name) filter.name = { $regex: name, $options: 'i' }; // Recherche insensible à la casse
+    if (email) filter.email = { $regex: email, $options: 'i' };
+    if (createdBy) filter.createdBy = createdBy;
+
+    const contacts = await Contact.find(filter).populate('createdBy', 'name email');
     res.status(200).json(contacts);
   } catch (error) {
     res.status(400).json({ error: error.message });

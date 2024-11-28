@@ -6,10 +6,24 @@ const jwt = require('jsonwebtoken');
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
+
+    // Validation: Vérifier si l'email est déjà pris
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email already taken' });
+    }
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
     const user = new User({ name, email, password: hashedPassword, role });
     await user.save();
-    res.status(201).json(user);
+
+    // Send the user details (avoid sending password)
+    const userWithoutPassword = { ...user.toObject(), password: undefined };
+
+    res.status(201).json(userWithoutPassword);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -19,11 +33,26 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Validation: Check if user exists
     const user = await User.findOne({ email });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
-    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.SECRET_KEY_JWT, { expiresIn: '1h' });
+
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Create JWT token
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.SECRET_KEY_JWT,
+      { expiresIn: '1h' }
+    );
+
     res.status(200).json({ token });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -33,10 +62,9 @@ exports.login = async (req, res) => {
 // Get all users
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().select('-password'); // Exclude password from the result
     res.status(200).json(users);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
-//Testing user controller avec Succes
