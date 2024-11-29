@@ -1,6 +1,8 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const errorHandler = require('../middelwares/errorHandler');
+const CustomError =require("../utils/customError");
 
 // Register a new user
 exports.register = async (req, res) => {
@@ -10,7 +12,12 @@ exports.register = async (req, res) => {
     // Validation: Vérifier si l'email est déjà pris
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'Email already taken' });
+      throw new CustomError(
+        'User already exists',
+        400,
+        'ValidationError',
+        { field: 'email' } // Données spécifiques à l'erreur
+      );
     }
 
     // Hash password
@@ -41,7 +48,8 @@ exports.login = async (req, res) => {
     // Validation: Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      //return res.status(401).json({ message: 'Invalid email or password' });
+      throw new CustomError("User not foundddd",401);//Custom Error
     }
 
     // Compare passwords

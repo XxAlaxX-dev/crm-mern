@@ -6,6 +6,7 @@ const noteRoutes = require('./routes/note.routes');
 const contactRoutes = require('./routes/contact.routes');
 const reunionRoutes = require('./routes/reunion.routes');
 const db=require("./config/db.js");
+const errorHandler = require("./middelwares/errorHandler.js");
 // Initialisation
 dotenv.config();
 const app = express();
@@ -24,8 +25,10 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/reunions', reunionRoutes);
+//middeleware d erreursconst logger = require('morgan');
 
-
+// Middlewares
+app.use(errorHandler);
 // Server
 app.listen(PORT, async() => {
     await db();
