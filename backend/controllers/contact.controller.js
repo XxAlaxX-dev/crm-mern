@@ -18,20 +18,33 @@ exports.createContact = async (req, res) => {
 // Obtenir tous les contacts avec filtrage avancé
 exports.getAllContacts = async (req, res) => {
   try {
-    const { name, email, createdBy } = req.query;
+    const { name, email, createdBy, onlyWithCreatedBy } = req.query;
     let filter = {};
 
-    if (name) filter.name = { $regex: name, $options: 'i' }; // Recherche insensible à la casse
+    // Filtrage par nom (insensible à la casse)
+    if (name) filter.name = { $regex: name, $options: 'i' };
+    
+    // Filtrage par email (insensible à la casse)
     if (email) filter.email = { $regex: email, $options: 'i' };
+    
+    // Filtrage par ID du créateur
     if (createdBy) filter.createdBy = createdBy;
+    
+    // Filtrer uniquement les contacts qui ont un createdBy défini
+    if (onlyWithCreatedBy === 'true') filter.createdBy = { $ne: null };
 
+    // Récupération des contacts avec la jointure sur le créateur
     const contacts = await Contact.find(filter).populate('createdBy', 'name email');
-    res.status(200).json(contacts);
+    
+    res.status(200).json({
+      success: true,
+      count: contacts.length,
+      contacts,
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ success: false, error: error.message });
   }
 };
-
 // Obtenir un contact par ID
 exports.getContactById = async (req, res) => {
   try {
