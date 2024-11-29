@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user.controller');
+const { authenticate, authorize } = require('../middelwares/authorize');
 
-// Route pour enregistrer un nouvel utilisateur
+// Public Routes
 router.post('/register', userController.register);
-
-// Route pour connecter un utilisateur (login)
 router.post('/login', userController.login);
 
-// Route pour obtenir tous les utilisateurs (sans leur mot de passe)
-router.get('/', userController.getAllUsers);
+// Protected Routes
+router.get('/', authenticate, authorize(['admin', 'manager']), userController.getAllUsers);
+router.delete('/:id', authenticate, authorize(['admin']), userController.deleteUser);
 
 module.exports = router;

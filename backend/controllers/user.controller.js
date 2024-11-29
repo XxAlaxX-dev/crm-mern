@@ -23,7 +23,11 @@ exports.register = async (req, res) => {
     // Send the user details (avoid sending password)
     const userWithoutPassword = { ...user.toObject(), password: undefined };
 
-    res.status(201).json(userWithoutPassword);
+    res.status(201).json({
+      succes:true,
+      msg:"User created Succefully",
+      userWithoutPassword
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -53,7 +57,7 @@ exports.login = async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    res.status(200).json({ token });
+    res.status(200).json({ succes:true,msg:"User Logged Succefully",token });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -64,6 +68,25 @@ exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password'); // Exclude password from the result
     res.status(200).json(users);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Ensure admin cannot delete themselves
+    if (req.user._id.toString() === id) {
+      return res.status(400).json({ message: "You cannot delete your own account." });
+    }
+
+    const user = await User.findByIdAndDelete(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
